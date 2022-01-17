@@ -3,6 +3,7 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const path = require('path')
 
 const saltRounds = 10;
 const jwt_code_secret = "SECRET_KEY";
@@ -11,6 +12,7 @@ const jwt_forgotPwd_secret = "SECRET_KEY_FORGOTPWD";
 const User = require("../models/UserModel");
 const {verifyToken, verifyMailToken} = require('../middleware/verifyToken');
 const sendMail = require("../middleware/sendMail")
+const appDir = path.dirname(require.main.filename);
 
 router.post('/createCompte', (req,res)=>{
     if(req.body.username && req.body.mail && req.body.password){
@@ -29,7 +31,7 @@ router.post('/createCompte', (req,res)=>{
             } else{
               // Send verification mail
               const token_mail = jwt.sign(user.mail, jwt_mail_secret);
-              const url = `http://${process.env.PORT_SERVER}/user/verification/${token_mail}`
+              //const url = `http://${process.env.PORT_SERVER}/user/verification/${token_mail}`
               await sendMail(req, token_mail)
               // transporter = nodemailer.createTransport({
               //   service: 'gmail',
@@ -84,11 +86,11 @@ router.get('/verification/:token', verifyMailToken, (req,res)=>{
                     if (err)
                       res.send(err);
                     else{
-                      res.sendFile("C:/Users/Mohamed/Desktop/pfe/node traini/public/index.html")
+                      res.sendFile(appDir+'\\public\\index.html')
                     }
                 })
               } else {
-                  res.json({"ERREUR" : "NO_USER_FOUND"});
+                res.json({"ERREUR" : "NO_USER_FOUND"});
               }
           }
         })

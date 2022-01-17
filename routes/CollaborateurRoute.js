@@ -3,6 +3,7 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const path = require('path')
 
 const saltRounds = 10;
 const jwt_code_secret = "SECRET_KEY";
@@ -11,6 +12,7 @@ const jwt_forgotPwd_secret = "SECRET_KEY_FORGOTPWD"
 const Collaborateur = require("../models/CollaborateurModel")
 const {verifyToken, verifyMailToken} = require('../middleware/verifyToken');
 const sendMail = require("../middleware/sendMail")
+const appDir = path.dirname(require.main.filename)
 
 router.post('/createCompte',(req,res)=>{
     if(req.body.username && req.body.mail && req.body.password && req.body.competence){
@@ -138,7 +140,7 @@ router.get('/verification/:token', verifyMailToken, (req,res)=>{
                   if (err)
                     res.send(err);
                   else{
-                    res.sendFile("C:/Users/Mohamed/Desktop/pfe/node traini/public/index.html")
+                    res.sendFile(appDir+'\\public\\index.html')
                   }
               })
             } else {
