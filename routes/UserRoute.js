@@ -10,9 +10,9 @@ const jwt_mail_secret = "SECRET_KEY_MAIL";
 const jwt_forgotPwd_secret = "SECRET_KEY_FORGOTPWD";
 const User = require("../models/UserModel");
 const {verifyToken, verifyMailToken} = require('../middleware/verifyToken');
+const sendMail = require("../middleware/sendMail")
 
-
-router.post('/createCompte',(req,res)=>{
+router.post('/createCompte', (req,res)=>{
     if(req.body.username && req.body.mail && req.body.password){
       user = new User(req.body.username, req.body.mail, bcrypt.hashSync(req.body.password, saltRounds), req.body.competence)
 
@@ -22,34 +22,35 @@ router.post('/createCompte',(req,res)=>{
         else if(rst){
           res.send({"ERREUR": "USERNAME_DEJA_EXIST"})
         } else{
-          dbo.collection("userApp").findOne({"mail": user.mail}, (err, result)=> {
+          dbo.collection("userApp").findOne({"mail": user.mail}, async (err, result)=> {
             if(err) res.json({"ERREUR" : err})
             else if(result){
               res.json({"ERREUR" : "MAIL_DEJA_EXISTE"})
             } else{
               // Send verification mail
               const token_mail = jwt.sign(user.mail, jwt_mail_secret);
-              const url = `http://localhost:3333/user/verification/${token_mail}`
-              transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                  user: 'genie.info.este@gmail.com',
-                  pass: 'Mohamed2000'
-                }
-              });
-              var mailOptions = {
-                from: 'genie.info.este@gmail.com',
-                to: user.mail,
-                subject: 'Sending Email using Microlocalistion',
-                html: ' Hello '.concat(user.username).concat(`,  <br /></br > One of your team mates have submitted an application for intern(s) for next summer. Please approve or reject the proposal on the internship portal. <br /> Here is the link of the internship portal :
-                            <a href="http://localhost:3333/user/verification/${token_mail}">${token_mail}</a><br /><br /> `),
-              };
-              transporter.sendMail(mailOptions, function(error, info){
-                if (error) {
-                  console.log(error);
-                } else {
-                }
-              })
+              const url = `http://${process.env.PORT_SERVER}/user/verification/${token_mail}`
+              await sendMail(req, token_mail)
+              // transporter = nodemailer.createTransport({
+              //   service: 'gmail',
+              //   auth: {
+              //     user: 'genie.info.este@gmail.com',
+              //     pass: 'Mohamed2000'
+              //   }
+              // });
+              // var mailOptions = {
+              //   from: 'genie.info.este@gmail.com',
+              //   to: user.mail,
+              //   subject: 'Sending Email using Microlocalistion',
+              //   html: ' Hello '.concat(user.username).concat(`,  <br /></br > One of your team mates have submitted an application for intern(s) for next summer. Please approve or reject the proposal on the internship portal. <br /> Here is the link of the internship portal :
+              //               <a href="http://${process.env.PORT_SERVER}/user/verification/${token_mail}">${token_mail}</a><br /><br /> `),
+              // };
+              // transporter.sendMail(mailOptions, function(error, info){
+              //   if (error) {
+              //     console.log(error);
+              //   } else {
+              //   }
+              // })
               dbo.collection('userApp').insertOne(user, (err, result)=> {
                 if (err){
                   res.json({"ERREUR" : err});

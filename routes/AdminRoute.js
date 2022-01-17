@@ -1,12 +1,16 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { verifyToken } = require('../middleware/verifyToken');
+var ObjectId = require('mongodb').ObjectId;
+var mongodb = require('mongodb');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+
+const Admin = require('../models/AdminModel')
+
 const saltRounds = 10;
 const jwt_code_secret = "SECRET_KEY";
 
-const Admin = require('../models/AdminModel')
 
 
 router.post('/createCompte',(req,res)=>{
@@ -141,6 +145,64 @@ router.get("/getAllTraducteur", verifyToken, (req, res)=>{
     })
 })
 
+router.get("/getCorrecteurByTheme", verifyToken, (req, res)=>{
+    jwt.verify(req.token, jwt_code_secret, (err,data)=>{
+        if(err) 
+            res.sendStatus(403);
+        else{
+            if(data.result.role == 'superAdmin'){
+                dbo.collection("collaborateur").find({"role": "correcteur", "theme": req.body.theme}).toArray((err, result)=>{
+                    if(err) res.send({"ERREUR": err})
+                    else{
+                        res.send({"CORRECTEURS" : result})
+                    }
+                })
+            }else{
+                res.send({"ERREUR": "NO_ACCESS"})
+            }
+        }
+    })
+})
+
+router.get("/getRedacteurByTheme", verifyToken, (req, res)=>{
+    jwt.verify(req.token, jwt_code_secret,(err,data)=>{
+        if(err) 
+                res.sendStatus(403);
+        else{
+            if(data.result.role == 'superAdmin'){
+                dbo.collection("collaborateur").find({"role": "redacteur", "theme": req.body.theme}).toArray((err, result)=>{
+                    if(err) res.send({"ERREUR": err})
+                    else{
+                        res.send({"REDACTEURS" : result})
+                    }
+                })
+            } else{
+                res.send({"ERREUR": "NO_ACCESS"})
+            }
+        }
+    })
+})
+
+router.get("/getTraducteurByTheme", verifyToken, (req, res)=>{
+    jwt.verify(req.token, jwt_code_secret, (err,data)=>{
+        if(err) 
+                res.sendStatus(403);
+        else{
+            if(data.result.role == 'superAdmin'){
+                dbo.collection("collaborateur").find({"role": "traducteur", "theme": req.body.theme}).toArray((err, result)=>{
+                    if(err) res.send({"ERREUR": err})
+                    else{
+                        res.send({"TRADUCTEURS" : result})
+                    }
+                })
+            } else{
+                res.send({"ERREUR" : "NO_ACCESS"})
+            }
+        }
+    })
+})
+
+
 router.get("/getCollaborateurs", verifyToken, (req, res)=>{
     jwt.verify(req.token,jwt_code_secret,(err,data)=>{
         if(err) 
@@ -166,22 +228,27 @@ router.put("/updataRole/:id", verifyToken, (req,res)=>{
                 res.sendStatus(403);
         else{
             if(data.result.role == 'superAdmin'){
-                dbo.collection("collaborateur").findOne({_id: new mongodb.ObjectId(req.params.id)}, (err, result)=>{
-                    if(err) res.send({"ERREUR": err})
-                    else{
-                        if(result){
-                            result.role = req.body.role
-                            dbo.collection("collaborateur").updateOne({_id: new mongodb.ObjectId(req.params.id)},{$set : result},(err, res)=> {
-                                if (err) res.send(err);
-                                else{
-                                    res.status(200).send("UPDATE_SUCCES");
-                                }
-                            })
-                        } else{
-                            res.send({"ERREUR": "USER_NOT_FOUND"})
+                if(req.body.role && req.body.theme ){
+                    dbo.collection("collaborateur").findOne({_id: new mongodb.ObjectId(req.params.id)}, (err, result)=>{
+                        if(err) res.send({"ERREUR": err})
+                        else{
+                            if(result){
+                                result.role = req.body.role
+                                result.theme = req.body.theme
+                                dbo.collection("collaborateur").updateOne({_id: new mongodb.ObjectId(req.params.id)},{$set : result},(err, rst)=> {
+                                    if (err) res.send(err);
+                                    else{
+                                        res.status(200).send("UPDATE_SUCCES");
+                                    }
+                                })
+                            } else{
+                                res.send({"ERREUR": "USER_NOT_FOUND"})
+                            }
                         }
-                    }
-                })
+                    })
+                } else {
+                    res.send({"ERREUR": "BODY_ERREUR"})
+                }
             } else{
                 res.status(400).json({"Erreur" : "NO_ACCESS"});
             }
@@ -194,6 +261,7 @@ router.delete("/deleteCollaborateur/:id", verifyToken, (req, res)=>{
         if(err) 
                 res.sendStatus(403);
         else{
+            console.log(req.params.id)
             if(data.result.role == 'superAdmin'){            
                 dbo.collection("collaborateur").deleteOne({_id: new mongodb.ObjectId(req.params.id)}, (err, result)=> {
                     if (err) 
@@ -221,7 +289,6 @@ router.delete("/deleteUser/:id", verifyToken, (req, res)=>{
                     if (err) 
                         throw err;
                     else{
-                        console.log(result)
                         if(result.deletedCount != 0)  res.status(200).send({MESSAGE: "DELETE_SUCCES"});
                         else res.send({"ERREUR": "USER_NOT_FOUND"})
                     }
@@ -233,5 +300,26 @@ router.delete("/deleteUser/:id", verifyToken, (req, res)=>{
     })
 })
 
+router.post("addAnnouncement", (req, res) =>{
+    jwt.verify(req.token,jwt_code_secret,(err,data)=>{
+        if(err) 
+                res.sendStatus(403);
+        else{
+            if(req.body.title && req.body.dataMax){
+                
+                if(data.result.role == 'superAdmin'){   
+                    dbo.collection('announce').insertOne(user, (err, result)=> {
+                        if (err){
+                          res.json({"ERREUR" : err});
+                        }
+                        else{
+                          res.send({'MESSAGE': 'BIEN_AJOUTER'});
+                        }
+                      })
+                }
+            }
+        }
+    })
+})
 
 module.exports = router;
