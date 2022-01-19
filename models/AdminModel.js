@@ -3,7 +3,7 @@ class Admin {
         this.username  = username;
         this.mail = mail,
         this.password = password,
-        this.role = "admin",
+        this.role = "responsable",
         this.status = "NOT_VERIFIED",
         this.resetLink=""
     }

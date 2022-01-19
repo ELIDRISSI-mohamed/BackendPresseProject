@@ -11,7 +11,7 @@ const User = require("../models/UserModel");
 const {verifyToken, verifyMailToken} = require('../middleware/verifyToken');
 
 
-router.post('/createCompte',(req,res)=>{
+/*router.post('/createCompte',(req,res)=>{
     if(req.body.username && req.body.mail && req.body.password){
       user = new User(req.body.username, req.body.mail, bcrypt.hashSync(req.body.password, saltRounds))
 
@@ -228,3 +228,4 @@ router.post("/resetPassword", (req, res)=>{
 })
 
 module.exports = router;
+*/

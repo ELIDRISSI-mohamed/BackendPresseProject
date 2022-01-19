@@ -14,6 +14,7 @@ const port = 3333
 var userRouter = require('./routes/UserRoute');
 var adminRouter = require('./routes/AdminRoute');
 var collaborateurRouter = require("./routes/CollaborateurRoute")
+var redacteurRouter = require("./routes/RedacteurRouter")
 
 const app = express();
 
@@ -23,20 +24,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.resolve('./public')));
 dotenv.config();
 
 const url = 'mongodb://localhost:27017';
+//const url = `mongodb+srv://ELIDRISSI:vWeuyDlIC6WOnSZ5@cluster0.xhq17.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const server = http.createServer(app)
-
-/*
-MongoClient.connect('mongodb+srv://PFE:pfe2020@cluster0-xhq17.mongodb.net/test?retryWrites=true&w=majority',{ useUnifiedTopology: true }, (err, db)=>{
-	if (err) {
-		throw err;
-	} else {
-        console.log("successfully connected to the database");
-        global.dbo = db.db('PFE');
-    }
-});*/
 
 MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db) {
 	if (err) {
@@ -51,6 +44,7 @@ MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db) {
 app.use('/admin', adminRouter);
 app.use('/collaborateur', collaborateurRouter);
 app.use('/user', userRouter);
+app.use('/redacteur', redacteurRouter)
 
 server.listen(port, ()=>{
     console.log(`app listening at port: ${port}`)
