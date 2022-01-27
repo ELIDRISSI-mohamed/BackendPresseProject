@@ -22,7 +22,7 @@ var storage =   multer.diskStorage({
       else callback(null, './public/images/');
   },
   filename: function (req, file, callback) {
-      if(!path.extname(file.originalname).localeCompare('.pdf')) callback(null, file.originalname);
+      if(!path.extname(file.originalname).localeCompare('.pdf')) callback(null, req.body.username+".pdf");
       else callback(null, req.body.username+''+path.extname(file.originalname));
   }
 });

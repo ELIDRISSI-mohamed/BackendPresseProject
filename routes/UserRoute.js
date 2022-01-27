@@ -137,7 +137,30 @@ router.post('/login',(req,res)=>{
 
 })
 
+router.get('/getAllArticles', (req, res)=>{
+    dbo.collection("article").find().sort({"dateAjou":-1}).toArray((err, result)=>{
+      if(err) res.send({"ERREUR": err})
+      else{
+          res.send({"ARTICLES" : result})
+      }
+    })
+})
 
-
+router.get('/getAllArticlesByTheme/:theme', (req, res)=>{
+  jwt.verify(req.token, jwt_code_secret, (err,data)=>{
+    if(err) 
+            res.sendStatus(403);
+    else{
+      if(data.result.role == 'user'){
+        dbo.collection("article").find({"theme": req.params.theme}).sort({"dateAjou":-1}).toArray((err, result)=>{
+          if(err) res.send({"ERREUR": err})
+          else{
+              res.send({"ARTICLES" : result})
+          }
+        })
+      }
+    }
+  })
+})
 
 module.exports = router;

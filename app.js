@@ -13,8 +13,10 @@ const port = 3333
 
 var userRouter = require('./routes/UserRoute');
 var adminRouter = require('./routes/AdminRoute');
-var collaborateurRouter = require("./routes/CollaborateurRoute")
-var redacteurRouter = require("./routes/RedacteurRouter")
+var collaborateurRouter = require("./routes/CollaborateurRoute");
+var redacteurRouter = require("./routes/RedacteurRouter");
+var traducteurRouter = require("./routes/TraducteurRouter");
+var correcteurRouter = require("./routes/CorrecteurRouter");
 
 const app = express();
 
@@ -44,7 +46,9 @@ MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db) {
 app.use('/admin', adminRouter);
 app.use('/collaborateur', collaborateurRouter);
 app.use('/user', userRouter);
-app.use('/redacteur', redacteurRouter)
+app.use('/redacteur', redacteurRouter);
+app.use('/traducteur', traducteurRouter);
+app.use('/correcteur', correcteurRouter);
 
 server.listen(port, ()=>{
     console.log(`app listening at port: ${port}`)

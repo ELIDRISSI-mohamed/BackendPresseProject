@@ -1,10 +1,12 @@
 class Annonce {
-    constructor(title, redacteur, etat, dataMax){
-        this.title  = title,
-        this.redacteur = redacteur,
-        this.correcteur = correcteur,
-        this.traducteur = traducteur,
-        this.dataMax = dataMax
+    constructor(title, theme, responsable, redacteur, correcteur, traducteur, dateMax){
+        this.title  = title;
+        this.theme = theme;
+        this.responsable = responsable;
+        this.redacteur = redacteur;
+        this.correcteur = correcteur;
+        this.traducteur = traducteur;
+        this.dateMax = dateMax;
     }
 } 
 

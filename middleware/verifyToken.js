@@ -6,7 +6,6 @@ const router = express.Router();
 
 var verifyToken = (req,res,next)=>{
     var bearerHeader = req.headers['authorization'];
-    console.log(req.headers)
     if(typeof bearerHeader !== 'undefined'){
         var bearerToken = bearerHeader.split(" ")[0];
         req.token = bearerToken;
