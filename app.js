@@ -29,11 +29,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.resolve('./public')));
 dotenv.config();
 
-const url = 'mongodb://localhost:27017';
+//const url = 'mongodb://localhost:27017';
 //const url = `mongodb+srv://ELIDRISSI:vWeuyDlIC6WOnSZ5@cluster0.xhq17.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const server = http.createServer(app)
 
-MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db) {
+MongoClient.connect(process.env.URL_MONGO, { useUnifiedTopology: true }, function (err, db) {
 	if (err) {
 		throw err;
 	} else {
