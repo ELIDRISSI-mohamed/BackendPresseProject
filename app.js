@@ -1,3 +1,4 @@
+const config =  require('./config.js');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -33,8 +34,8 @@ dotenv.config();
 //const url = `mongodb+srv://ELIDRISSI:vWeuyDlIC6WOnSZ5@cluster0.xhq17.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const server = http.createServer(app)
 
-MongoClient.connect(process.env.URL_MONGO, { useUnifiedTopology: true }, function (err, db) {
-	if (err) {
+MongoClient.connect(config.URL_MONGO, { useUnifiedTopology: true }, function (err, db) {
+    if (err) {
 		throw err;
 	} else {
         console.log("Connected");
