@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "set NODE_ENV=local&& nodemon server.js",
+    "server": "set NODE_ENV=server&& nodemon server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
