@@ -1,4 +1,4 @@
-class User {
+class Client {
     constructor(username, mail, password){
         this.username  = username;
         this.mail = mail,
@@ -10,4 +10,4 @@ class User {
 } 
 
 
-module.exports = User;
+module.exports = Client;

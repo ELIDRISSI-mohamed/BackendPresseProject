@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
+const multer  = require('multer');
 
 const { verifyToken } = require('../middleware/verifyToken');
 const Article = require("../models/ArticleModel")
@@ -15,6 +16,18 @@ var mm = today.getMonth()+1;
 var yyyy = today.getFullYear()
 
 date=yyyy+"-"+mm+"-"+dd
+
+var storage =   multer.diskStorage({
+  destination: function (req, file, callback) {
+      if(!path.extname(file.originalname).localeCompare('.jpg')) callback(null, './public/images/');
+      else callback(null, './public/images/');
+  },
+  filename: function (req, file, callback) {
+      if(!path.extname(file.originalname).localeCompare('.jpg')) callback(null, req.params.title+".jpg");
+      else callback(null, req.params.title+''+path.extname(file.originalname));
+  }
+});
+var upload = multer({ storage : storage });
 
 router.get('/showTaches', verifyToken, (req,res)=>{
   jwt.verify(req.token, jwt_code_secret, (err,data)=>{
@@ -35,13 +48,13 @@ router.get('/showTaches', verifyToken, (req,res)=>{
   })
 })
 
-router.post('/addArticle/:title', verifyToken, (req,res)=>{
+router.post('/addArticle/:title', verifyToken, upload.array('file'), (req,res)=>{
   jwt.verify(req.token, jwt_code_secret, (err,data)=>{
     if(err) 
             res.sendStatus(403);
     else{
       if(data.result.role == 'redacteur'){
-        if(req.body.theme && req.body.text){
+        if(req.body.theme && req.body.text /*&& req.files*/){
           dbo.collection("announce").findOne({"title" : req.params.title}, (err, result)=>{
             if(err) 
                 res.send({"ERREUR": err})
@@ -56,7 +69,7 @@ router.post('/addArticle/:title', verifyToken, (req,res)=>{
                           res.send({"ERREUR" : "ARICLE DE CETTE TITRE EXISTE DEJA"})
                         } else{
                           article = new Article(req.params.title, date, req.body.theme, req.body.text)
-                          dbo.collection('article').insertOne(article, (err, result)=> {
+                          dbo.collection('article').insertOne(article, (err, resAr)=> {
                             if (err) throw err
                             else{
                               dbo.collection("collaborateur").findOne({"mail": data.redacteur.mail}, (err, resR)=>{
@@ -64,9 +77,12 @@ router.post('/addArticle/:title', verifyToken, (req,res)=>{
                                 else{
                                   if(resR){
                                     resR.nbrTache -= 1
-                                    dbo.collection("collaborateur").updateOne({"mail": data.redacteur.mail},{$set : resR},(err, result)=> {
+                                    dbo.collection("collaborateur").updateOne({"mail": data.redacteur.mail},{$set : resR}, async(err, resColl)=> {
                                         if (err) res.send(err);
                                         else{
+                                          //send notification a responsable
+                                          text =' Bonjour '.concat(announce.responsable.username).concat(`,  <br /></br > La tache de sous titre ${result.title} a été realisé`)
+                                          await sendMail(result.responsable.mail, text);
                                           res.send({"MESSAGE" : "BIEN_AJOUTER"})
                                         }
                                     })

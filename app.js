@@ -12,9 +12,9 @@ const path = require('path');
 
 const port = 3333
 
-var userRouter = require('./routes/UserRoute');
-var adminRouter = require('./routes/AdminRoute');
-var collaborateurRouter = require("./routes/CollaborateurRoute");
+var clientRouter = require('./routes/ClientRouter');
+var adminRouter = require('./routes/AdminRouter');
+var collaborateurRouter = require("./routes/CollaborateurRouter");
 var redacteurRouter = require("./routes/RedacteurRouter");
 var traducteurRouter = require("./routes/TraducteurRouter");
 var correcteurRouter = require("./routes/CorrecteurRouter");
@@ -46,7 +46,7 @@ MongoClient.connect(config.URL_MONGO, { useUnifiedTopology: true }, function (er
 
 app.use('/admin', adminRouter);
 app.use('/collaborateur', collaborateurRouter);
-app.use('/user', userRouter);
+app.use('/user', clientRouter);
 app.use('/redacteur', redacteurRouter);
 app.use('/traducteur', traducteurRouter);
 app.use('/correcteur', correcteurRouter);

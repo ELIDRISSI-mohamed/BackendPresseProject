@@ -10,10 +10,13 @@ const saltRounds = 10;
 const jwt_code_secret = "SECRET_KEY";
 const jwt_mail_secret = "SECRET_KEY_MAIL";
 const jwt_forgotPwd_secret = "SECRET_KEY_FORGOTPWD"
+const appDir = path.dirname(require.main.filename)
+
 const Collaborateur = require("../models/CollaborateurModel")
 const {verifyToken, verifyMailToken} = require('../middleware/verifyToken');
 const sendMail = require("../middleware/sendMail")
-const appDir = path.dirname(require.main.filename)
+const config = require("../config")
+
 
 
 var storage =   multer.diskStorage({
@@ -29,7 +32,7 @@ var storage =   multer.diskStorage({
 var upload = multer({ storage : storage });
 
 router.post('/createCompte', upload.array('file'), (req,res)=>{
-    if(req.body.username && req.body.mail && req.body.password && req.body.competence && req.files){
+    if(req.body.username && req.body.mail && req.body.password && req.body.competence /*&& req.files*/){
       user = new Collaborateur(req.body.username, req.body.mail, bcrypt.hashSync(req.body.password, saltRounds), req.body.competence)
       
       dbo.collection("collaborateur").findOne({"username": user.username}, (err, rst)=>{
@@ -45,8 +48,9 @@ router.post('/createCompte', upload.array('file'), (req,res)=>{
               // Send verification mail
               const token_mail = jwt.sign(user.mail, jwt_mail_secret);
               //const url = `http://localhsot:3333/collaborateur/verification/${token_mail}`
-              req.source = "collaborateur"
-              await sendMail(req, token_mail)
+              text =' Hello '.concat(user.username).concat(`,  <br /></br > Please click this link to confirm your identification.
+                <a href="http://${config.HOST}:3333/collaborateur/verification/${token_mail}">${token_mail}</a><br /><br /> `)
+              await sendMail(user.mail, text)
               // const url = `http://localhost:3333/collaborateur/verification/${token_mail}`
               // transporter = nodemailer.createTransport({
               //   service: 'gmail',

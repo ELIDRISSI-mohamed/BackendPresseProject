@@ -9,22 +9,24 @@ const saltRounds = 10;
 const jwt_code_secret = "SECRET_KEY";
 const jwt_mail_secret = "SECRET_KEY_MAIL";
 const jwt_forgotPwd_secret = "SECRET_KEY_FORGOTPWD";
-const User = require("../models/UserModel");
+const Client = require("../models/ClientModel");
 const {verifyToken, verifyMailToken} = require('../middleware/verifyToken');
 const sendMail = require("../middleware/sendMail")
+const config =  require('../config');
+
 const appDir = path.dirname(require.main.filename);
 
 router.post('/createCompte', (req,res)=>{
     if(req.body.username && req.body.mail && req.body.password){
-      user = new User(req.body.username, req.body.mail, bcrypt.hashSync(req.body.password, saltRounds), req.body.competence)
+      user = new Client(req.body.username, req.body.mail, bcrypt.hashSync(req.body.password, saltRounds))
 
       
-      dbo.collection("userApp").findOne({"username": user.username}, (err, rst)=>{
+      dbo.collection("client").findOne({"username": user.username}, (err, rst)=>{
         if(err) res.send({"ERREUR": err})
         else if(rst){
           res.send({"ERREUR": "USERNAME_DEJA_EXIST"})
         } else{
-          dbo.collection("userApp").findOne({"mail": user.mail}, async (err, result)=> {
+          dbo.collection("client").findOne({"mail": user.mail}, async (err, result)=> {
             if(err) res.json({"ERREUR" : err})
             else if(result){
               res.json({"ERREUR" : "MAIL_DEJA_EXISTE"})
@@ -32,8 +34,9 @@ router.post('/createCompte', (req,res)=>{
               // Send verification mail
               const token_mail = jwt.sign(user.mail, jwt_mail_secret);
              // const url = `http://localhsot:3333/user/verification/${token_mail}`
-              req.source = "user"
-              await sendMail(req, token_mail)
+              text =' Hello '.concat(user.username).concat(`,  <br /></br > Please click this link to confirm your identification.
+                    <a href="http://${config.HOST}:3333/user/verification/${token_mail}">${token_mail}</a><br /><br /> `)
+              await sendMail(user.mail, text);
               // transporter = nodemailer.createTransport({
               //   service: 'gmail',
               //   auth: {
@@ -54,7 +57,7 @@ router.post('/createCompte', (req,res)=>{
               //   } else {
               //   }
               // })
-              dbo.collection('userApp').insertOne(user, (err, result)=> {
+              dbo.collection('client').insertOne(user, (err, result)=> {
                 if (err){
                   res.json({"ERREUR" : err});
                 }
@@ -77,13 +80,13 @@ router.get('/verification/:token', verifyMailToken, (req,res)=>{
       if(err) 
               res.sendStatus(403);
       else{
-        dbo.collection('userApp').findOne({"mail": data}, (err, result)=> {
+        dbo.collection('client').findOne({"mail": data}, (err, result)=> {
           if (err)
               res.send(err);
           else{
               if(result) {
                 result.status = 'VERIFIED';
-                dbo.collection("userApp").updateOne({"mail" : data},{$set : result},(err, result)=> {
+                dbo.collection("client").updateOne({"mail" : data},{$set : result},(err, result)=> {
                     if (err)
                       res.send(err);
                     else{
@@ -106,7 +109,7 @@ router.post('/login',(req,res)=>{
           'password' : req.body.password
       }
 
-      dbo.collection("userApp").findOne({'mail':user.mail}, (err,result)=>{
+      dbo.collection("client").findOne({'mail':user.mail}, (err,result)=>{
           if(err)
               throw err
           else{
@@ -146,7 +149,7 @@ router.get('/getAllArticles', (req, res)=>{
     })
 })
 
-router.get('/getAllArticlesByTheme/:theme', (req, res)=>{
+router.get('/getAllArticlesByTheme/:theme', verifyToken, (req, res)=>{
   jwt.verify(req.token, jwt_code_secret, (err,data)=>{
     if(err) 
             res.sendStatus(403);

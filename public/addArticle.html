@@ -7,11 +7,12 @@
     <title>Document</title>
 </head>
 <body>
-    <form method="post" action="http://localhost:3333/participants/add" enctype="multipart/form-data">
+    <form method="post" action="http://localhost:3333/collaborateur/addArticle/sport" enctype="multipart/form-data">
         <div>
-            <input type="text" name="formationName"><br><br>
-          <label for="file">Sélectionner le fichier à envoyer</label>
-          <input type="file" id="file" name="file" accept=".xlsx"><br><br>
+            theme : <input type="text" name="theme"><br><br>
+            texte : <input type="text" name="text"><br><br>
+          <label for="file">Image de l'article: </label>
+          <input type="file" id="file" name="file" accept=".pdf"><br><br>
           <input type="submit" value="Upload">
         </div>
     </form>

@@ -4,7 +4,7 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 
 
-var sendMail = (req, token_mail)=>{
+var sendMail = (mail, text)=>{
    transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -14,10 +14,9 @@ var sendMail = (req, token_mail)=>{
       });
       var mailOptions = {
         from: 'genie.info.este@gmail.com',
-        to: req.body.mail,
-        subject: 'Sending Email using Microlocalistion',
-        html: ' Hello '.concat(req.body.username).concat(`,  <br /></br > Please click this link to confirm your identification.
-                    <a href="http://${config.HOST}:3333/${req.source}/verification/${token_mail}">${token_mail}</a><br /><br /> `),
+        to: mail,
+        subject: 'Web presse',
+        html: text
       };
       transporter.sendMail(mailOptions, function(error, info){
         if (error) {

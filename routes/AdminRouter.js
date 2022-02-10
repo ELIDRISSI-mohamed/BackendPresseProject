@@ -8,6 +8,8 @@ const bcrypt = require('bcryptjs');
 
 const Admin = require('../models/AdminModel')
 const Announce = require('../models/AnnonceModel')
+const sendMail = require('../middleware/sendMail')
+const config = require('../config')
 
 const saltRounds = 10;
 const jwt_code_secret = "SECRET_KEY";
@@ -313,7 +315,7 @@ router.put("/updateStatusResponsable/:id", verifyToken, (req, res)=>{
     })
 })
 
-router.put("/updataRole/:id", verifyToken, (req,res)=>{
+router.put("/updataRoleCollaborateur/:id", verifyToken, (req,res)=>{
     jwt.verify(req.token,jwt_code_secret,(err,data)=>{
         if(err) 
                 res.sendStatus(403);
@@ -376,7 +378,7 @@ router.delete("/deleteUser/:id", verifyToken, (req, res)=>{
                 res.sendStatus(403);
         else{
             if(data.result.role == 'superAdmin'){            
-                dbo.collection("userApp").deleteOne({_id: new mongodb.ObjectId(req.params.id)}, (err, result)=> {
+                dbo.collection("client").deleteOne({_id: new mongodb.ObjectId(req.params.id)}, (err, result)=> {
                     if (err) 
                         throw err;
                     else{
@@ -420,20 +422,24 @@ router.post("/addAnnouncement", verifyToken, (req, res) =>{
             if(data.result.role == 'superAdmin' || data.result.role == 'responsable'){   
                 if(req.body.title && req.body.theme && req.body.correcteur && req.body.redacteur && req.body.traducteur && req.body.dateMax){
                     announce = new Announce(req.body.title , req.body.theme, data.result, req.body.correcteur ,req.body.redacteur ,req.body.traducteur ,req.body.dateMax)
-                    
+                    // Verifier s'il existe une tache de la meme titre
                     dbo.collection("announce").findOne({"title": announce.title}, (err, result)=>{
                         if(err) throw err
                         else{
                             if(result) res.send({"ERREUR": "ARTICLE_DEJA_EXISTE"})
                             else{
+                                // Augmenter le nombre des taches des collaborateurs selectionné puis notifier les collaborateurs par un mail en gmail
                                 dbo.collection("collaborateur").findOne({"mail": announce.redacteur.mail}, (err, resR)=>{
                                     if(err) res.send({"ERREUR": err})
                                     else{
                                         if(resR){
                                             resR.nbrTache += 1
-                                            dbo.collection("collaborateur").updateOne({"mail": announce.redacteur.mail},{$set : resR},(err, result)=> {
+                                            dbo.collection("collaborateur").updateOne({"mail": announce.redacteur.mail},{$set : resR}, async(err, result)=> {
                                                 if (err) res.send(err);
                                                 else{
+                                                    //send notification
+                                                    text =' Bonjour '.concat(announce.redacteur.username).concat(`,  <br /></br > Vous une nouvelle tache a realiser.`)
+                                                    await sendMail(announce.redacteur.mail, text);
                                                 }
                                             })
                                         } 
@@ -444,9 +450,12 @@ router.post("/addAnnouncement", verifyToken, (req, res) =>{
                                     else{
                                         if(resC){
                                             resC.nbrTache += 1
-                                            dbo.collection("collaborateur").updateOne({"mail": announce.correcteur.mail},{$set : resC},(err, result)=> {
+                                            dbo.collection("collaborateur").updateOne({"mail": announce.correcteur.mail}, {$set : resC}, async(err, result)=> {
                                                 if (err) res.send(err);
                                                 else{
+                                                    //send notification
+                                                    text =' Bonjour '.concat(announce.correcteur.username).concat(`,  <br /></br > Vous une nouvelle tache a realiser.`)
+                                                    await sendMail(announce.correcteur.mail, text);
                                                 }
                                             })
                                         } 
@@ -457,14 +466,18 @@ router.post("/addAnnouncement", verifyToken, (req, res) =>{
                                     else{
                                         if(resT){
                                             resT.nbrTache += 1
-                                            dbo.collection("collaborateur").updateOne({"mail": announce.traducteur.mail},{$set : resT},(err, result)=> {
+                                            dbo.collection("collaborateur").updateOne({"mail": announce.traducteur.mail},{$set : resT}, async (err, result)=> {
                                                 if (err) res.send(err);
                                                 else{
+                                                    //send notification
+                                                    text =' Bonjour '.concat(announce.traducteur.username).concat(`,  <br /></br > Vous une nouvelle tache a realiser.`)
+                                                    await sendMail(announce.traducteur.mail, text);
                                                 }
                                             })
                                         } 
                                     }
                                 })
+                                
                                 dbo.collection('announce').insertOne(announce, (err, result)=> {
                                     if (err){
                                         res.json({"ERREUR" : err});
@@ -485,5 +498,6 @@ router.post("/addAnnouncement", verifyToken, (req, res) =>{
         }
     })
 })
+
 
 module.exports = router;

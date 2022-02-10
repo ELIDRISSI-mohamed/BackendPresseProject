@@ -83,9 +83,12 @@ router.post('/corrigerArticle/:title', verifyToken, (req,res)=>{
                                                         else{
                                                             if(resC){
                                                                 resC.nbrTache -= 1
-                                                                dbo.collection("collaborateur").updateOne({"mail": data.correcteur.mail},{$set : resC},(err, result)=> {
+                                                                dbo.collection("collaborateur").updateOne({"mail": data.correcteur.mail},{$set : resC}, async(err, rstCorr)=> {
                                                                     if (err) res.send(err);
                                                                     else{
+                                                                        //send notification a responsable
+                                                                        text =' Bonjour '.concat(result.responsable.username).concat(`,  <br /></br > La tache de sous-titre ${result.title} a été corrigé.`)
+                                                                        await sendMail(result.responsable.mail, text);
                                                                         res.send({MESSAGE : "BIEN_CORRIGE"});
                                                                     }
                                                                 })

@@ -84,9 +84,12 @@ router.put('/addTaductionArticle/:title', verifyToken, (req,res)=>{
                                                         else{
                                                             if(resT){
                                                                 resT.nbrTache += 1
-                                                                dbo.collection("collaborateur").updateOne({"mail": data.traducteur.mail},{$set : resT},(err, result)=> {
+                                                                dbo.collection("collaborateur").updateOne({"mail": data.traducteur.mail},{$set : resT}, async(err, rstUpdate)=> {
                                                                     if (err) res.send(err);
                                                                     else{
+                                                                        //send notification a responsable
+                                                                        text =' Bonjour '.concat(result.responsable.username).concat(`,  <br /></br > La traducion de la tache de sous-titre ${result.title} a été realisé`)
+                                                                        await sendMail(result.responsable.mail, text);
                                                                         res.send({MESSAGE : "UPDATE_SUCCES"});
                                                                     }
                                                                 })
