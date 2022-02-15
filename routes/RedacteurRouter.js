@@ -36,7 +36,7 @@ router.get('/showTaches', verifyToken, (req,res)=>{
             res.sendStatus(403);
     else{
       if(data.result.role == 'redacteur'){
-        dbo.collection("announce").find({"redacteur.mail" : data.result.mail}).toArray((err, result)=>{
+        dbo.collection("announce").find({"redacteur.mail" : data.result.mail, "rediger": false}).toArray((err, result)=>{
           if(err) res.send({"ERREUR": err})
           else{
               res.send({"ANNOUNCES" : result})
@@ -63,38 +63,49 @@ router.post('/addArticle/:title', verifyToken, upload.array('file'), (req,res)=>
               if(!result) res.send({"ERREUR" : "ARTICLE_N'EXISTE_PAS"})
               else {
                 if(result.redacteur.mail == data.result.mail){
-                  dbo.collection("article").findOne({"title" : req.params.title}, (err, rsl)=>{
-                      if(err) throw err
-                      else{
-                        if(rsl){
-                          res.send({"ERREUR" : "ARICLE DE CET TITRE EXISTE DEJA"})
-                        } else{
-                          article = new Article(req.params.title, date, req.body.theme, req.body.text)
-                          dbo.collection('article').insertOne(article, (err, resAr)=> {
-                            if (err) throw err
-                            else{
-                              dbo.collection("collaborateur").findOne({"mail": result.redacteur.mail}, (err, resR)=>{
-                                if(err) res.send({"ERREUR": err})
-                                else{
-                                  if(resR){
-                                    resR.nbrTache -= 1
-                                    dbo.collection("collaborateur").updateOne({"mail": result.redacteur.mail},{$set : resR}, async(err, resColl)=> {
-                                        if (err) res.send(err);
-                                        else{
-                                          //send notification a responsable
-                                          text =' Bonjour '.concat(result.responsable.username).concat(`,  <br /></br > La tache de sous titre ${result.title} a été realisé`)
-                                          await sendMail(result.responsable.mail, text);
-                                          res.send({"MESSAGE" : "BIEN_AJOUTER"})
-                                        }
-                                    })
-                                  } 
-                                }
-                              })
-                            }
-                          })
+                  if(result.rediger == false){
+                    dbo.collection("article").findOne({"title" : req.params.title}, (err, rsl)=>{
+                        if(err) throw err
+                        else{
+                          if(rsl){
+                            res.send({"ERREUR" : "ARICLE DE CET TITRE EXISTE DEJA"})
+                          } else{
+                            article = new Article(req.params.title, date, req.body.theme, req.body.text)
+                            dbo.collection('article').insertOne(article, (err, resAr)=> {
+                              if (err) throw err
+                              else{
+                                dbo.collection("collaborateur").findOne({"mail": result.redacteur.mail}, (err, resR)=>{
+                                  if(err) res.send({"ERREUR": err})
+                                  else{
+                                    if(resR){
+                                      resR.nbrTache -= 1
+                                      dbo.collection("collaborateur").updateOne({"mail": result.redacteur.mail},{$set : resR}, async(err, resColl)=> {
+                                          if (err) res.send(err);
+                                          else{
+                                            result.rediger = true;
+                                            dbo.collection("announce").updateOne({"title" : req.params.title},{$set : result}, async(err, resUpdate)=> {
+                                              if (err) res.send(err);
+                                              else{
+
+                                              }
+                                            })
+                                            //send notification a responsable
+                                            text =' Bonjour '.concat(result.responsable.username).concat(`,  <br /></br > La tache de sous titre ${result.title} a été realisé`)
+                                            await sendMail(result.responsable.mail, text);
+                                            res.send({"MESSAGE" : "BIEN_AJOUTER"})
+                                          }
+                                      })
+                                    } 
+                                  }
+                                })
+                              }
+                            })
+                          }
                         }
-                      }
-                  })
+                    })
+                  } else{
+                    res.send({"ERREUR" : "DEJA_RIDIGER"})
+                  }
                 } else{
                     res.send({"ERREUR": "NO_ACCESS"})
                 }

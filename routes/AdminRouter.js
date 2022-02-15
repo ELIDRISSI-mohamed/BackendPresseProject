@@ -71,8 +71,8 @@ router.post('/login',(req,res)=>{
                             if(result.role == 'superAdmin'){
                                 res.status(200).json({"token" : token, "role" : "superAdmin"});
                             } 
-                            else if(result.role == 'admin') {
-                              res.status(200).json({"token" : token, "role" : "admin"});
+                            else if(result.role == 'responsable') {
+                              res.status(200).json({"token" : token, "role" : "responsable"});
                             } 
                         } else {
                             res.status(403).json({"ERREUR" : "COMPTE_NOT_VERIFIED"});
@@ -422,7 +422,7 @@ router.post("/addAnnouncement", verifyToken, (req, res) =>{
         else{
             if(data.result.role == 'superAdmin' || data.result.role == 'responsable'){   
                 if(req.body.title && req.body.theme && req.body.correcteur && req.body.redacteur && req.body.traducteur && req.body.dateMax){
-                    announce = new Announce(req.body.title , req.body.theme, data.result, req.body.correcteur ,req.body.redacteur ,req.body.traducteur ,req.body.dateMax)
+                    announce = new Announce(req.body.title , req.body.theme, data.result, req.body.redacteur ,req.body.correcteur ,req.body.traducteur ,req.body.dateMax)
                     // Verifier s'il existe une tache de la meme titre
                     dbo.collection("announce").findOne({"title": announce.title}, (err, result)=>{
                         if(err) throw err
@@ -571,5 +571,16 @@ router.get("/getAllTheme", verifyToken, (req, res)=>{
         }
     })
 })
+
+router.get("/getDataUser", verifyToken, (req, res)=>{
+    jwt.verify(req.token, jwt_code_secret, (err,data)=>{
+        if(err) 
+                res.sendStatus(403);
+        else{
+            res.send({"DATA" : data})
+        }
+    })
+})
+
 
 module.exports = router;

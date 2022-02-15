@@ -7,6 +7,9 @@ class Annonce {
         this.correcteur = correcteur;
         this.traducteur = traducteur;
         this.dateMax = dateMax;
+        this.rediger = false;
+        this.traduire = false;
+        this.corriger = false;
     }
 } 
 
