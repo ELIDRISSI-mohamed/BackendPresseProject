@@ -531,4 +531,26 @@ router.post("/addTheme", verifyToken, (req, res)=>{
     })
 })
 
+router.delete("/deleteTheme/:id", verifyToken, (req, res)=>{
+    jwt.verify(req.token, jwt_code_secret, (err,data)=>{
+        if(err) 
+                res.sendStatus(403);
+        else{
+            if(data.result.role == 'superAdmin' || data.result.role == 'responsable'){
+                dbo.collection("theme").deleteOne({_id: new mongodb.ObjectId(req.params.id)}, (err, result)=> {
+                    if (err) 
+                        throw err;
+                    else{
+                        console.log(result)
+                        if(result.deletedCount != 0)  res.status(200).send({MESSAGE: "DELETE_SUCCES"});
+                        else res.send({"ERREUR": "USER_NOT_FOUND"})
+                    }
+                })
+            } else{
+                res.send({"ERREUR" : "NO_ACCESS"})
+            }
+        }
+    })
+})
+
 module.exports = router;
