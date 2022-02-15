@@ -49,7 +49,7 @@ router.post('/createCompte', upload.array('file'), (req,res)=>{
               const token_mail = jwt.sign(user.mail, jwt_mail_secret);
               //const url = `http://localhsot:3333/collaborateur/verification/${token_mail}`
               text =' Hello '.concat(user.username).concat(`,  <br /></br > Please click this link to confirm your identification.
-                <a href="http://${config.HOST}:3333/collaborateur/verification/${token_mail}">${token_mail}</a><br /><br /> `)
+                <a href="http://159.89.231.146:3333/collaborateur/verification/${token_mail}">${token_mail}</a><br /><br /> `)
               await sendMail(user.mail, text)
               // const url = `http://localhost:3333/collaborateur/verification/${token_mail}`
               // transporter = nodemailer.createTransport({

@@ -9,5 +9,5 @@ dotenv.config({
 module.exports = {
     NODE_ENV : process.env.NODE_ENV || 'local',
     HOST : process.env.HOST || 'localhost',
-    URL_MONGO : process.env.URL_MONGO || 'mongodb://localhost:27017'
+    URL_MONGO : 'mongodb+srv://ELIDRISSI:vWeuyDlIC6WOnSZ5@cluster0.xhq17.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 }

@@ -9,7 +9,9 @@ const saltRounds = 10;
 const jwt_code_secret = "SECRET_KEY";
 const jwt_mail_secret = "SECRET_KEY_MAIL";
 const jwt_forgotPwd_secret = "SECRET_KEY_FORGOTPWD";
+
 const Client = require("../models/ClientModel");
+const Theme = require("../models/ThemeModel");
 const {verifyToken, verifyMailToken} = require('../middleware/verifyToken');
 const sendMail = require("../middleware/sendMail")
 const config =  require('../config');
@@ -35,7 +37,7 @@ router.post('/createCompte', (req,res)=>{
               const token_mail = jwt.sign(user.mail, jwt_mail_secret);
              // const url = `http://localhsot:3333/user/verification/${token_mail}`
               text =' Hello '.concat(user.username).concat(`,  <br /></br > Please click this link to confirm your identification.
-                    <a href="http://${config.HOST}:3333/user/verification/${token_mail}">${token_mail}</a><br /><br /> `)
+                    <a href="http://159.89.231.146:3333/user/verification/${token_mail}">${token_mail}</a><br /><br /> `)
               await sendMail(user.mail, text);
               // transporter = nodemailer.createTransport({
               //   service: 'gmail',

@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 
 const Admin = require('../models/AdminModel')
 const Announce = require('../models/AnnonceModel')
+const Theme = require("../models/ThemeModel")
 const sendMail = require('../middleware/sendMail')
 const config = require('../config')
 
@@ -499,5 +500,35 @@ router.post("/addAnnouncement", verifyToken, (req, res) =>{
     })
 })
 
+router.post("/addTheme", verifyToken, (req, res)=>{
+    jwt.verify(req.token, jwt_code_secret, (err,data)=>{
+        if(err) 
+                res.sendStatus(403);
+        else{
+            if(data.result.role == 'superAdmin' || data.result.role == 'responsable'){
+                if(req.body.name && req.body.description){
+                    theme = new Theme(req.body.name, req.body.description);
+                    dbo.collection("theme").findOne({"name": theme.name}, (err, result)=> {
+                        if(err) res.json({"ERREUR" : err})
+                        else if(result){
+                          res.json({"ERREUR" : "THEME_DEJA_EXISTE"})
+                        } else{
+                            dbo.collection("theme").insertOne(theme ,(err, result)=>{
+                                if(err) res.send({"ERREUR": err})
+                                else{
+                                    res.send({"MESSAGE" : "ADD SUCCESS"})
+                                }
+                            })
+                        }
+                      })
+                }else {
+                    res.send({"ERREUR" : "BODY_ERREUR"})
+                }
+            } else{
+                res.send({"ERREUR" : "NO_ACCESS"})
+            }
+        }
+    })
+})
 
 module.exports = router;
