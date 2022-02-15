@@ -553,4 +553,23 @@ router.delete("/deleteTheme/:id", verifyToken, (req, res)=>{
     })
 })
 
+router.get("/getAllTheme", verifyToken, (req, res)=>{
+    jwt.verify(req.token, jwt_code_secret, (err,data)=>{
+        if(err) 
+                res.sendStatus(403);
+        else{
+            if(data.result.role == 'superAdmin' || data.result.role == 'responsable'){
+                dbo.collection("theme").find().toArray((err, result)=>{
+                    if(err) res.send({"ERREUR": err})
+                    else{
+                        res.send({"THEMES" : result})
+                    }
+                })
+            } else{
+                res.send({"ERREUR" : "NO_ACCESS"})
+            }
+        }
+    })
+})
+
 module.exports = router;
